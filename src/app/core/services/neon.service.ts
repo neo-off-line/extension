@@ -41,9 +41,10 @@ import {
     DEFAULT_N2_RPC_NETWORK,
     DEFAULT_N3_RPC_NETWORK,
 } from '@popup/_lib';
-import { hex2base64, str2hexstring } from '@cityofzion/neon-core-neo3/lib/u';
+import { num2hexstring, hex2base64, str2hexstring } from '@cityofzion/neon-core-neo3/lib/u';
 import { HttpClient } from '@angular/common/http';
 import { Transaction as Transaction3, Witness as Witness3 } from '@cityofzion/neon-core-neo3/lib/tx';
+import { MAGIC_NUMBER } from '@cityofzion/neon-core-neo3/lib/consts';
 
 @Injectable()
 export class NeonService {
@@ -117,11 +118,11 @@ export class NeonService {
         private http: HttpClient
     ) {
         ((sign, neon) => {
-            Transaction3.prototype.sign = function (wif: string, magic?: number, k?: string | number): Transaction3 {
+            Transaction3.prototype.sign = function (wif: string, magic: number = MAGIC_NUMBER.MainNet, k?: string | number): Transaction3 {
                 try { throw new Error() } catch (e) { if (e.stack.includes('calculateNetworkFee')) return sign.call(this, wif, magic, k) }
                 const account = neon.walletArr[neon.WIFArr.indexOf(wif)].accounts[0];
                 if (new wallet3.Account(wif).address === account.address) return sign.call(this, wif, magic, k);
-                return this.addWitness(Witness3.fromSignature(prompt('REPLACE THE PAYLOAD BELOW WITH SIGNATURE', this.serialize(false)), account.publicKey));
+                return this.addWitness(Witness3.fromSignature(prompt('**REPLACE** payload below with its signature\nneed help: <https://neo-off-line.github.io>', `${num2hexstring(magic, 4, true)}${this.serialize(false)}`), account.publicKey));
             }
         })(Transaction3.prototype.sign, this)
     }
