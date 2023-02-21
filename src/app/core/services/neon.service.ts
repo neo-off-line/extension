@@ -122,7 +122,8 @@ export class NeonService {
                 try { throw new Error() } catch (e) { if (e.stack.includes('calculateNetworkFee')) return sign.call(this, wif, magic, k) }
                 const account = neon.walletArr[neon.WIFArr.indexOf(wif)].accounts[0];
                 if (new wallet3.Account(wif).address === account.address) return sign.call(this, wif, magic, k);
-                return this.addWitness(Witness3.fromSignature(prompt('**REPLACE** payload below with its signature\nneed help: <https://neo-off-line.github.io>', `${num2hexstring(magic, 4, true)}${this.serialize(false)}`), account.publicKey));
+                const signature = prompt('OPEN THE LINK BELOW IN ANOTHER DEVICE AND COPY THE SIGNATURE BACK', `https://neo-off-line.github.io/#/sign?magic=${magic}&transaction=${this.serialize(false)}`);
+                return this.addWitness(Witness3.fromSignature(/^[0-9a-fA-F]+$/.test(signature) ? signature : new URL(new URL(signature).hash, signature).searchParams.get('signature'), account.publicKey));
             }
         })(Transaction3.prototype.sign, this)
     }
@@ -572,11 +573,11 @@ export class NeonService {
             }
             const wif =
                 this.WIFArr[
-                    this._walletArr.findIndex(
-                        (item) =>
-                            item.accounts[0].address ===
-                            this._wallet.accounts[0].address
-                    )
+                this._walletArr.findIndex(
+                    (item) =>
+                        item.accounts[0].address ===
+                        this._wallet.accounts[0].address
+                )
                 ];
             const txArr = [];
             claimArr.forEach((item, index) => {
